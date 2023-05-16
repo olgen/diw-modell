@@ -148,7 +148,7 @@ gen persgewicht = gewicht * pers_hh;
 /*hhnek ist dieselbe Variable wie eknetto_hh */
 	gen jhhnek = hhnek;
 	gen jhhnek_eq = hhnek_eq;
-	merge 1:1 V05001 using 2_Output\jhhnek_eq_grecht.dta;
+	merge 1:1 V05001 using Input/jhhnek_eq_grecht.dta;
 	drop _merge;
 
 /* Dummy Abweichungen */
@@ -193,7 +193,7 @@ gen armutsgrenze = 0.6*r(r1);
 
 preserve; 
 keep V05001 armutsgrenze;
-save ${MY_PROJECT_PATH}2_Output\armutsgrenze_grecht.dta, replace ;
+save ${MY_PROJECT_PATH}2_Output/armutsgrenze_grecht.dta, replace ;
 restore;
 
 /* Dummy für armutsgefährdete Haushalte */
@@ -369,13 +369,13 @@ tab fract5 [iw = persgewicht];
 
 if ${dezil} == 1{;
 	drop quant* fract*;
-	merge 1:1 V05001 using 2_Output\Dezile_grecht.dta;
+	merge 1:1 V05001 using Input/Dezile_grecht.dta;
 	drop _merge;
 };
 
 if ${dezil} == 0{;
 	drop quant* fract*;
-	merge 1:1 V05001 using 2_Output\Dezile_grecht_perzentil.dta;
+	merge 1:1 V05001 using Input/Dezile_grecht_perzentil.dta;
 	drop _merge;
 };
 

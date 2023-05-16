@@ -7,6 +7,19 @@ set more 1;
 /*set varabbrev off */
 global starttime 		"$S_TIME";
 
+
+if c(username) == "eugen" {;
+	global MY_IN_PATH   	"/Users/eugen/projects/uge/diw-modell/CodeModell/";
+	global MY_TEMP_PATH 	"/Users/eugen/projects/uge/diw-modell/CodeModell/temp/";
+	global MY_PROJECT_PATH	"/Users/eugen/projects/uge/diw-modell/CodeModell/"; //Wo die Sachen gespeichert werden
+	global MY_PROGRAM_PATH	"/Users/eugen/projects/uge/diw-modell/CodeModell/"; // Wo die DoFils hergeholt werden
+	global MY_PATH			"/Users/eugen/projects/uge/diw-modell/CodeModell/";
+	global MY_SUBPATH		"/Users/eugen/projects/uge/diw-modell/CodeModell/";
+	cd ${MY_PROJECT_PATH};
+	
+};
+
+
 if c(username) == "mhamburg" {;
 	global MY_IN_PATH   	"J:\SOEP35\";
 	global MY_TEMP_PATH 	"K:\sbach\mhamburg\Übergabe2\temp\";

@@ -433,7 +433,7 @@ replace bruttoeinkommen = bruttoeinkommen+
 					
 					
 #delimit;
-gen shtrans = 0;
+/*gen shtrans = 0;*/
 do Klassenbildung.do;
 /*Anpassungen*/
 replace ekzins   = ekzins*2 if couple==1;
