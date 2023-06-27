@@ -7,7 +7,7 @@
 	/*******************************************************************************
 							Festlegen der Steuervariante
 	*******************************************************************************/
-	global variante0 = "0";
+	global variante0 = "1";
 	global variante2 = "0"; /*Variante 1 läuft durch, wenn beides auf 0 geschaltet ist*/ 
 	global tarifEst = 0; /*Progressiv = 1, Flat = 0*/
 	global ehegattensplitting = 0;
@@ -67,12 +67,14 @@
 	/*Im Folgenden wird das Bürgergeld der Haushalte ermittelt. Hierbei wird ermittelt, 
 	wer im Haushalt eine Bedarfsgemeinschaft formt und wer nicht. */
 	gen bürgergeld = scalar(BG)*12;
-	replace bürgergeld = (bürgergeld + scalar(BG)*0.5*12* kindu18) if ehe_dummy !=1 & lp_dummy != 1; //Personen, die in einem HH leben, aber nicht Eherpartner/Lebenspartner sind kriegen Das volle BG + die Hälfte für jedes Kind
+
+		
+   replace bürgergeld = (bürgergeld + scalar(BG)*0.5*12* kindu18) if ehe_dummy !=1 & lp_dummy != 1; //Personen, die in einem HH leben, aber nicht Eherpartner/Lebenspartner sind kriegen Das volle BG + die Hälfte für jedes Kind
 	replace bürgergeld = (bürgergeld + scalar(BG)*0.5*12*0.5* kindu18) if ehe_dummy ==1 | lp_dummy == 1;
+	
 	//Personen, die zusammenleben kriegen BG zur Hälfte anteilig
 	replace bürgergeld = 0 if alter <=17; //Nur Personen über 18 erhalten BG, 
 	egen bürgergeld_hh_hh = sum(bürgergeld), by (V05001);
-	
 	/******************************************************************************
 
 				2. Ermittlung der Terme in der Steuerfunktion 
@@ -115,7 +117,7 @@
 			4. Ermittlung der Steuerlast
 
 	*******************************************************************************/
-	scalar steuersatz = 0.545;
+	scalar steuersatz = 0.6814;
 	scalar solisatz = 0;
 	
 		/*******************************************************************************
@@ -193,6 +195,7 @@
 		/*******************************************************************************
 					Schritt 5: Ermittlung Steuer
 		*******************************************************************************/
+
 		gen zve = spe-transfergrenze;
 		gen negsteuer = steuerschuld-bürgergeld;
 		replace negsteuer = 0 if negsteuer >= 0;
@@ -212,116 +215,16 @@
 			gen steuer_transfer = 0;
 			gen steuer_transfer_ehe = 0;
 		};
-		if "${tarifEst}" == "1"{;
-		
-			preserve;
-
-			import excel using Parameter_BGKS.xlsx, sheet(Sheet1) clear firstrow cellrange(A1:D18) ;
-
-			scalar     tp_g1_bgks = sz_Bürgergeld[1]; 
-			scalar     tp_g2_bgks = sz_Bürgergeld[2];	
-			scalar     tp_g3_bgks = sz_Bürgergeld[3];
-			scalar     tp_g4_bgks = sz_Bürgergeld[4];
-			scalar     tp_a2_bgks = sz_Bürgergeld[6];
-			scalar     tp_a3_bgks = sz_Bürgergeld[7];
-			scalar     tp_b2_bgks = sz_Bürgergeld[9];
-			scalar     tp_b3_bgks = sz_Bürgergeld[10];
-			scalar     tp_b4_bgks = sz_Bürgergeld[11];
-			scalar     tp_b5_bgks = sz_Bürgergeld[12];
-			scalar     tp_c3_bgks = sz_Bürgergeld[14];
-			scalar     tp_c4_bgks = sz_Bürgergeld[15];
-			scalar     tp_c5_bgks = sz_Bürgergeld[16];
-
-			restore;
-
-		
-		
-
-			gen steuer = 0;
-			replace steuer = (tp_b2_bgks + (zve-tp_g1_bgks)*tp_a2_bgks*10^(-8))*(zve-tp_g1_bgks) 			if zve>tp_g1_bgks & zve<= tp_g2_bgks;
-			replace steuer = (tp_b3_bgks + (zve-tp_g2_bgks)*tp_a3_bgks*10^(-8))*(zve-tp_g2_bgks)+tp_c3_bgks if zve >tp_g2_bgks & zve <=tp_g3_bgks;
-			replace steuer =tp_b4_bgks*zve-tp_c4_bgks 														if zve >tp_g3_bgks & zve <=tp_g4_bgks;
-			replace steuer = tp_b5_bgks*zve - tp_c5_bgks													if zve >tp_g4_bgks;
-
-			/*Ehegattensplitting*/ replace zve_ehe = 0.5*zve_ehe if split1 == 1;
-			gen steuer_ehe = 0 if V10002 == 0 & split1 == 1;
-			replace steuer_ehe = (tp_b2_bgks + (zve_ehe-tp_g1_bgks)*tp_a2_bgks*10^(-8))*(zve_ehe-tp_g1_bgks) if zve_ehe>tp_g1_bgks & zve_ehe<= tp_g2_bgks & V10002 == 0 & split1 == 1;
-			replace steuer_ehe = (tp_b3_bgks + (zve_ehe-tp_g2_bgks)*tp_a3_bgks*10^(-8))*(zve_ehe-tp_g2_bgks)+tp_c3_bgks if zve_ehe >tp_g2_bgks & zve_ehe <=tp_g3_bgks & V10002 == 0 & split1 == 1;
-			replace steuer_ehe = tp_b4_bgks*zve_ehe-tp_c4_bgks 	 if zve_ehe >tp_g3_bgks & zve_ehe <=tp_g4_bgks & V10002 == 0 & split1 == 1;
-			replace steuer_ehe = tp_b5_bgks*zve_ehe - tp_c5_bgks if zve_ehe >tp_g4_bgks & V10002 == 0 & split1 == 1; 
-			replace steuer_ehe = 2*steuer_ehe if V10002 == 0 & split1 == 1;
-
-			if "${variante2}" == "1"{;
-
-				replace steuer_transfer = (tp_b2_bgks + (transfergrenze-tp_g1_bgks)*tp_a2_bgks*10^(-8))*(transfergrenze-tp_g1_bgks) 					if transfergrenze>tp_g1_bgks & transfergrenze<= tp_g2_bgks;
-				replace steuer_transfer = (tp_b3_bgks + (transfergrenze-tp_g2_bgks)*tp_a3_bgks*10^(-8))*(transfergrenze-tp_g2_bgks)+tp_c3_bgks 		if transfergrenze >tp_g2_bgks & transfergrenze <=tp_g3_bgks;
-				replace steuer_transfer = tp_b4_bgks*transfergrenze-tp_c4_bgks 																		if transfergrenze >tp_g3_bgks & transfergrenze <=tp_g4_bgks;
-				replace steuer_transfer = tp_b5_bgks*transfergrenze - tp_c5_bgks																		if transfergrenze >tp_g4_bgks;
-				
-				/*Ehegattensplitting*/
-				replace steuer_transfer_ehe = (tp_b2_bgks + (transfergrenze_ehe-tp_g1_bgks)*tp_a2_bgks*10^(-8))*(transfergrenze_ehe-tp_g1_bgks) 					if transfergrenze_ehe>tp_g1_bgks & transfergrenze_ehe<= tp_g2_bgks & V10002 == 0 & split1 == 1;
-				replace steuer_transfer_ehe = (tp_b3_bgks + (transfergrenze_ehe-tp_g2_bgks)*tp_a3_bgks*10^(-8))*(transfergrenze_ehe-tp_g2_bgks)+tp_c3_bgks 		if transfergrenze_ehe >tp_g2_bgks & transfergrenze_ehe <=tp_g3_bgks & V10002 == 0 & split1 == 1;
-				replace steuer_transfer_ehe = tp_b4_bgks*transfergrenze_ehe-tp_c4_bgks 																		if transfergrenze_ehe >tp_g3_bgks & transfergrenze_ehe <=tp_g4_bgks & V10002 == 0 & split1 == 1;
-				replace steuer_transfer_ehe = tp_b5_bgks*transfergrenze_ehe - tp_c5_bgks																		if transfergrenze_ehe >tp_g4_bgks & V10002 == 0 & split1 == 1;
 	
-	
-				replace steuer = max(steuer-steuer_transfer,0);
-				replace steuer_ehe = max(steuer_ehe-steuer_transfer_ehe,0) if V10002 == 0 & split1 == 1;
-			};
-
-
-
-			if "${variante0}" == "1"{;
-				gen pos_steuer = steuer if steuer >= 0;
-				gen soli_ks = 0 ;
-				replace soli_ks = steuer*(solisatz) if steuer > 0;
-				replace steuer = steuer + negsteuer if negsteuer <0; /*Aufgestockten Einkomme*/
-				
-				gen pos_steuer_ehe = steuer_ehe if steuer_ehe >= 0 & V10002 == 0 & split1 == 1;
-				gen soli_ks_ehe = 0 if V10002 == 0 & split1 == 1;
-				replace soli_ks_ehe = steuer_ehe*(solisatz) if steuer_ehe > 0;
-				replace steuer_ehe = steuer_ehe + negsteuer_ehe if negsteuer<0 & V10002 == 0 & split1 == 1;
-			};
-			else{;
-				replace steuer = 0 if steuer == .;
-				replace steuer = max(steuer,0);
-				gen pos_steuer = steuer if steuer >= 0;
-				replace steuer = negsteuer if negsteuer <0 & steuer == 0;
-				gen soli_ks = 0 ;
-				replace soli_ks = steuer*(solisatz)) if steuer > 0;
-				
-				replace steuer_ehe = 0 if steuer_ehe ==.  & V10002 == 0 & split1 == 1;
-				gen pos_steuer_ehe = steuer_ehe if steuer_ehe >= 0 & V10002 == 0 & split1 == 1
-				replace steuer_ehe = negsteuer_ehe if negsteuer_ehe < 0 & steuer_ehe == 0 & V10002 == 0 & split1 == 1;
-				gen soli_ks_ehe = 0 if V10002 == 0 & split1 == 1;
-				replace soli_ks_ehe = steuer_ehe*(solisatz) if steuer_ehe > 0 & V10002 == 0 & split1 == 1;
-			};
-
-			replace steuer = 0 if steuer ==.;
-
-			gen fest_est = 0;
-			gen fest_est_EST = 0;
-			replace fest_est_EST = steuer + soli_ks;
-
-			replace fest_est_EST = 0 if fest_est_EST == .;
-
-			gen neg_steuer = negsteuer;
-
-			gen pos_steuer_fest = fest_est_EST if fest_est_EST >=0;
-			gen neg_steuer_fest = fest_est_EST if fest_est_EST < 0;
-
-			gen pos_steuer_hh_ = fest_est_EST if fest_est_EST >=0;
-			gen neg_steuer_hh_ = fest_est_EST if fest_est_EST < 0 ;
-
-			sum steuer soli_ks fest_est_EST pos_steuer neg_steuer;
-		};
 		
 		if "${tarifEst}" == "0"{;
 				/*Ehegattensplitting*/
 				replace zve_ehe = 0.5*zve_ehe if V10002 == 0 & split1==1;
 				gen steuer_ehe = scalar(steuersatz)*zve_ehe if zve_ehe >= 0 & V10002 == 0 & split1==1;
 				replace steuer_ehe = 2*steuer_ehe if V10002 == 0 & split1==1;
-			gen steuer = scalar(steuersatz)*zve if zve >= 0;
+				
+				/*  STEUER FÜR FLATTAX: */
+				gen steuer = scalar(steuersatz)*zve if zve >= 0;
 			
 			if "${variante0}" == "1"{;
 				replace steuer = 0 if steuer ==.;
@@ -389,6 +292,8 @@
 					Schritt 6: Berechnung der Nettoeinkommen
 		*******************************************************************************/
 		gen eknetto_bedarfsgemeinschaften = bruttoeinkommen - fest_est_EST - svbeiträge;
+		
+		
 		
 		foreach var in transferersetzt transferek steuer bürgergeld{;
 			egen `var'_hh = sum(`var'), by(V05001);

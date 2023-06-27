@@ -56,8 +56,7 @@ foreach ek in sbhp soli_ks pos_steuer neg_steuer fest_est_EST spe   {;
 bys hhnrakt: egen `ek'_hh = total(`ek');
 sum `ek'_hh [w=gewicht] if hhnrakt[_n]!=hhnrakt[_n-1];
 															};
-					
-
+				
 /* ********************************************************************************************/
 /* Festgesetzte Einkommensteuer (ohne Solidaritaetszuschlag)*/
 /* ********************************************************************************************/
