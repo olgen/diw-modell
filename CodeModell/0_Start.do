@@ -7,19 +7,6 @@ set more 1;
 /*set varabbrev off */
 global starttime 		"$S_TIME";
 
-
-if c(username) == "eugen" {;
-	global MY_IN_PATH   	"/Users/eugen/projects/uge/diw-modell/CodeModell/";
-	global MY_TEMP_PATH 	"/Users/eugen/projects/uge/diw-modell/CodeModell/temp/";
-	global MY_PROJECT_PATH	"/Users/eugen/projects/uge/diw-modell/CodeModell/"; //Wo die Sachen gespeichert werden
-	global MY_PROGRAM_PATH	"/Users/eugen/projects/uge/diw-modell/CodeModell/"; // Wo die DoFils hergeholt werden
-	global MY_PATH			"/Users/eugen/projects/uge/diw-modell/CodeModell/";
-	global MY_SUBPATH		"/Users/eugen/projects/uge/diw-modell/CodeModell/";
-	cd ${MY_PROJECT_PATH};
-	
-};
-
-
 if c(username) == "mhamburg" {;
 	global MY_IN_PATH   	"J:\SOEP35\";
 	global MY_TEMP_PATH 	"K:\sbach\mhamburg\Übergabe2\temp\";
@@ -44,7 +31,9 @@ if c(username) == "sbach" {;
 
 
 
-use datensatz_aggr2.dta; /*Einlesen des Datensatzes*/
+/* use datensatz_aggr2.dta; use datensatz_n_aggr.dta; *//*Einlesen des Datensatzes*/
+use datensatz_nicht_aggregiert5.dta;
+
 /********************************************************************************************/
 /* 1) Simulation*/
 /********************************************************************************************/
@@ -67,7 +56,7 @@ foreach run in 0 {; // über die Varianten (siehe Liste der Varianten im Kopf di
 	set matsize 800;
 		
 	do 1_Sim.do;
-	
+	//Simulation wird abgespeichert
 	save "${MY_PROJECT_PATH}1_Simulation/1_Simulation_.dta", replace;
 	
 	// *******************************************************************************************

@@ -79,7 +79,6 @@ program gsichklassen;
 
 end;
 
-
 generate shtransg=shtrans*12;
 generate uhalthhg=uhalthh*12;
 generate wohngldg=wohngld*12;
